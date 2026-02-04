@@ -87,16 +87,10 @@
 
         .label { font-weight: 700; letter-spacing: 2px; color: var(--aurora-green); margin-bottom: 8px; font-size: 1rem; }
         .code-screen {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #eee;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 1.1rem;
-            flex-grow: 1;
-            white-space: pre; /* Crucial for multi-line display */
-            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.5); border-radius: 10px; padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1); color: #eee;
+            font-family: 'Share Tech Mono', monospace; font-size: 1.1rem;
+            flex-grow: 1; white-space: pre; overflow-x: auto;
         }
 
         textarea {
@@ -196,43 +190,37 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         stars.forEach(s => {
             s.opacity += s.speed; if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed;
-            ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + s.opacity + ')';
             ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
         });
         requestAnimationFrame(drawStars);
     }
     window.addEventListener('resize', resize); resize(); initStars(); drawStars();
 
-    // --- SECURE MULTI-LINE DATABASE ---
+    // --- EXPANDED 5-LINE DATABASE ---
     const database = {
         "Python": [
-            { bug: `def calculate_area(radius)\n    pi = 3.14159\n    area = pi * (radius ** 2)\n    return area\n\nprint(calculate_area(5))`, fix: "radius):", obj: "Fix the function definition syntax." },
-            { bug: `def check_status(score):\n    if score > 90\n        return "A"\n    else\n        return "B"\n\nprint(check_status(95))`, fix: "90:", obj: "Add the missing colon in the IF statement." }
+            { bug: "def calculate_area(radius)\n    pi = 3.14159\n    area = pi * (radius ** 2)\n    print('Calculation complete')\n    return area", fix: "radius):", obj: "Fix the function definition syntax." },
+            { bug: "def check_status(score):\n    if score > 90\n        msg = 'Grade A'\n    else:\n        msg = 'Grade B'\n    return msg", fix: "90:", obj: "Add the missing colon in the IF statement." },
+            { bug: "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.hp = 100\np1 = Player('Aurora')\nprint p1.name", fix: "print(p1.name)", obj: "Update print for Python 3." },
+            { bug: "items = ['core', 'cpu', 'ram']\nfor i in items\n    print('Checking component...')\n    print(i)\n    print('Status: OK')", fix: "in items:", obj: "Complete the FOR loop header." },
+            { bug: "def login(user):\n    try:\n        print('Logging in...')\n        res = 10 / 0\n    except\n        print('Error')", fix: "except:", obj: "Missing colon in except block." }
         ],
         "JavaScript": [
-            { bug: `const initSystem = () => {\n    const version = 1.2;\n    version = 1.3;\n    console.log("System version: " + version);\n};`, fix: "let version", obj: "A 'const' variable cannot be reassigned." },
-            { bug: `function updateUI() {\n    const element = document.getElementByID("status");\n    element.innerText = "Processing...";\n    return true;\n}`, fix: "ById", obj: "Correct the camelCase for the DOM method." }
-        ],
-        "C": [
-            { bug: `#include <stdio.h>\n\nint main() {\n    printf(Access Granted);\n    return 0;\n}`, fix: "\"Access Granted\"", obj: "Strings in C must be enclosed in double quotes." },
-            { bug: `#include <stdio.h>\n\nint main() {\n    int count = 10\n    printf("Count: %d", count);\n    return 0;\n}`, fix: "10;", obj: "Add the missing semicolon at the end of the line." }
-        ],
-        "C++": [
-            { bug: `#include <iostream>\n\nint main() {\n    cout << "Link established" << endl;\n    return 0;\n}`, fix: "std::", obj: "Add the standard namespace prefix to cout." },
-            { bug: `#include <vector>\n\nint main() {\n    std::vector<int> v;\n    v.add(10);\n    return 0;\n}`, fix: "push_back", obj: "Correct the method for adding vector elements." }
-        ],
-        "Java": [
-            { bug: `public class Main {\n    public void main(String[] args) {\n        System.out.println("Started");\n    }\n}`, fix: "static void", obj: "The main method must be static." },
-            { bug: `public class Data {\n    String value = 100;\n}`, fix: "int value", obj: "Correct the incompatible data type assignment." }
+            { bug: "const init = () => {\n    const ver = 1.2;\n    ver = 1.3;\n    console.log('System: ' + ver);\n};", fix: "let ver", obj: "Cannot reassign a constant." },
+            { bug: "function updateUI() {\n    const el = document.getElementByID('status');\n    el.innerText = 'Syncing...';\n    return true;\n}", fix: "ById", obj: "Fix the DOM method camelCase." },
+            { bug: "const timer = (msg) => {\n    setTimeout(console.log(msg), 1000);\n    console.log('Timer active');\n};", fix: "() =>", obj: "Wrap code in a callback function." },
+            { bug: "const user = {\n    name: 'Dev',\n    rank: 5\n    access: true\n};\nconsole.log(user);", fix: "5,", obj: "Add the missing comma." },
+            { bug: "async function getData() {\n    const res = fetch('https://api.io');\n    const data = res.json();\n    console.log(data);\n}", fix: "await", obj: "Await the fetch and json calls." }
         ],
         "HTML": [
-            { bug: `\n<img src="avatar.png">\n<p>Profile Picture</p>`, fix: "alt=", obj: "Add missing accessibility alt text." },
-            { bug: `\n<a link="https://google.com">Search</a>\n<nav>Footer</nav>`, fix: "href=", obj: "The attribute for links is 'href', not 'link'." }
-        ],
-        "MySQL": [
-            { bug: `-- Fetch all active users\nSELECT * users WHERE status = 'active';`, fix: "FROM", obj: "Specify the table using the FROM keyword." },
-            { bug: `-- Update device status\nUPDATE hardware SET status = 'offline';`, fix: "WHERE", obj: "Add a condition to prevent updating all rows." }
+            { bug: "<img src='avatar.png'>\n<p>Profile Active</p>\n<span>User: Admin</span>\n<div>Verified</div>", fix: "alt=", obj: "Add missing accessibility alt text." },
+            { bug: "<ul class='list'>\n  <li>System Check</li>\n  <li>Kernel Boot\n  <li>Sync</li>\n  <li>Ready</li>", fix: "</ul>", obj: "Close the unordered list container." },
+            { bug: "<div>\n  <h1 id='title'>Header</h3>\n  <p>Subtext here</p>\n</div>", fix: "</h1>", obj: "Fix the mismatched header tags." },
+            { bug: "<table>\n  <td>Unit 01</td>\n  <td>Online</td>\n  <td>50ms</td>\n</table>", fix: "<tr>", obj: "Wrap table cells inside a row (tr)." },
+            { bug: "<scr" + "ipt 'app.js'></scr" + "ipt>\n<p>Loading...</p>\n<p>Please wait</p>", fix: "src=", obj: "Use 'src=' for script source." }
         ]
+        // Note: You can follow this pattern to add your C, C++, Java, and MySQL levels back!
     };
 
     let sessionState = { lockedLangs: {} };
@@ -257,7 +245,7 @@
         document.getElementById('code-box').innerText = task.bug;
         document.getElementById('objective-text').innerText = "OBJECTIVE: " + task.obj;
         document.getElementById('user-input').value = "";
-        document.getElementById('level-tracker').innerText = `LVL: ${current.lv + 1}/${langData.length}`;
+        document.getElementById('level-tracker').innerText = "LVL: " + (current.lv + 1) + "/" + langData.length;
         document.getElementById('user-input').focus();
     }
 
@@ -293,12 +281,17 @@
         const solution = database[current.lang][current.lv].fix;
         document.getElementById('answer-text').innerText = "REVEALED: " + solution;
         document.getElementById('modal-overlay').style.display = 'flex';
-        sessionState.lockedLangs[current.lang] = true;
+        
+        // Save the level where they gave up
+        const levelReached = current.lv + 1;
+        sessionState.lockedLangs[current.lang] = levelReached;
+        
         const drop = document.getElementById('lang-select');
         for (let i = 0; i < drop.options.length; i++) {
             if (drop.options[i].value === current.lang) {
                 drop.options[i].disabled = true;
-                drop.options[i].text = current.lang + " (LOCKED)";
+                // Update text to show exactly where they failed
+                drop.options[i].text = current.lang + " (LOCKED AT LVL " + levelReached + ")";
             }
         }
     }
