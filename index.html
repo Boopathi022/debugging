@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURORA_DEBUGGER | Secure Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aurora-green: #00ffcc;
+            --aurora-purple: #a020f0;
+            --aurora-blue: #00d4ff;
+            --terminal-bg: rgba(2, 12, 20, 0.85);
+            --glow: 0 0 20px rgba(0, 255, 204, 0.4);
+            --warn-red: #ff4b2b;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Rajdhani', sans-serif;
+            background: #02050a;
+        }
+
+        .aurora-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; background: linear-gradient(to bottom, #02050a, #051923);
+        }
+
+        .aurora-waves {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, var(--aurora-green) 0%, transparent 40%),
+                radial-gradient(circle at 80% 40%, var(--aurora-blue) 0%, transparent 40%),
+                radial-gradient(circle at 50% 20%, var(--aurora-purple) 0%, transparent 50%);
+            filter: blur(80px); opacity: 0.4;
+            animation: aurora-drift 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes aurora-drift {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+            50% { transform: scale(1.1) translate(2%, 5%); opacity: 0.5; }
+            100% { transform: scale(1) translate(-2%, -3%); opacity: 0.3; }
+        }
+
+        canvas#starfield { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        .master-container { height: 100vh; display: flex; justify-content: center; align-items: center; }
+
+        .terminal {
+            background: var(--terminal-bg); width: 95vw; max-width: 1100px;
+            height: 85vh; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.3);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), var(--glow);
+            backdrop-filter: blur(15px); display: flex; flex-direction: column;
+            overflow: hidden; animation: terminal-float 6s ease-in-out infinite;
+        }
+
+        @keyframes terminal-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .status-bar {
+            background: rgba(0, 255, 204, 0.1); padding: 10px 25px;
+            display: flex; justify-content: space-between;
+            font-family: 'Share Tech Mono', monospace; color: var(--aurora-green);
+            font-size: 0.8rem; border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+        }
+
+        .content-area { display: flex; flex: 1; padding: 25px; gap: 20px; overflow-y: auto; }
+        .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+        .start-text { font-size: 3rem; color: #fff; margin-bottom: 20px; font-weight: 700; }
+        
+        select {
+            background: #000; color: var(--aurora-green); border: 2px solid var(--aurora-green); 
+            padding: 12px 30px; font-size: 1.3rem; border-radius: 10px; font-family: 'Rajdhani';
+            cursor: pointer; outline: none;
+        }
+
+        .btn-patch {
+            background: var(--aurora-green); color: #020c14; border: none;
+            padding: 15px 35px; margin-top: 15px; font-family: 'Rajdhani';
+            font-weight: 900; font-size: 1.2rem; cursor: pointer;
+            border-radius: 8px; transition: 0.3s; text-transform: uppercase;
+        }
+
+        .btn-patch:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--aurora-green); background: #fff; }
+
+        .label { font-weight: 700; letter-spacing: 2px; color: var(--aurora-green); margin-bottom: 8px; font-size: 1rem; }
+        .code-screen {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #eee;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            flex-grow: 1;
+            white-space: pre; /* Crucial for multi-line display */
+            overflow-x: auto;
+        }
+
+        textarea {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--aurora-green);
+            border-radius: 10px; padding: 15px; color: #fff;
+            font-family: 'Share Tech Mono', monospace; font-size: 1rem;
+            height: 150px; resize: none; outline: none; transition: 0.3s;
+        }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(15px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+
+        .modal-card {
+            background: #0a141d; border: 2px solid var(--aurora-blue);
+            padding: 40px; border-radius: 15px; text-align: center; max-width: 450px;
+        }
+
+        .answer-reveal {
+            font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
+            color: var(--aurora-green); background: rgba(0,0,0,0.6);
+            padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px dashed var(--aurora-green);
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="aurora-bg"><div class="aurora-waves"></div></div>
+<canvas id="starfield"></canvas>
+
+<div id="modal-overlay">
+    <div class="modal-card animate__animated animate__zoomIn">
+        <h2 style="color:var(--aurora-blue); margin-top:0;">SESSION TERMINATED</h2>
+        <p style="color: #ccc;">Access to this language has been locked for this session.</p>
+        <div class="answer-reveal" id="answer-text"></div>
+        <button class="btn-patch" onclick="resetToHome()">RETURN TO HOME</button>
+    </div>
+</div>
+
+<div id="toast-msg" class="animate__animated hidden" style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; z-index: 1000; pointer-events: none;"></div>
+
+<div class="master-container">
+    <div class="terminal">
+        <div class="status-bar">
+            <span>AURORA_SYSTEMS_V2.0</span>
+            <span id="level-tracker">LVL: --</span>
+            <span>UPLINK: ONLINE</span>
+        </div>
+
+        <div id="start-screen" style="text-align: center; margin-top: 80px;">
+            <h1 class="start-text">CHOOSE LANGUAGE</h1>
+            <select id="lang-select">
+                <option value="Python">Python</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="C">C</option>
+                <option value="C++">C++</option>
+                <option value="Java">Java</option>
+                <option value="HTML">HTML</option>
+                <option value="MySQL">MySQL</option>
+            </select><br><br>
+            <button class="btn-patch" style="width: 280px;" onclick="startGame()">START CHALLENGE</button>
+            <p id="lockout-status" style="color: var(--warn-red); margin-top: 15px; font-weight: bold;"></p>
+        </div>
+
+        <div id="game-screen" class="content-area hidden">
+            <div class="pane">
+                <div class="label">ENCRYPTED_DATA</div>
+                <div id="code-box" class="code-screen"></div>
+                <p id="objective-text" style="color: var(--aurora-blue); font-size: 0.9rem; margin-top: 10px; font-weight: bold;"></p>
+            </div>
+            
+            <div class="pane">
+                <div class="label">REPAIR_BUFFER</div>
+                <textarea id="user-input" placeholder="Enter fix..."></textarea>
+                <button class="btn-patch" onclick="checkFix()">PATCH CODE</button>
+                <button style="background:transparent; border:1px solid var(--warn-red); color:var(--warn-red); margin-top:12px; cursor:pointer; padding:8px; font-family:'Rajdhani'; font-weight:bold; border-radius:5px;" onclick="giveUp()">REVEAL ANSWER</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- STARFIELD BACKGROUND ---
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    function initStars() {
+        stars = [];
+        for(let i=0; i<200; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, opacity: Math.random(), speed: Math.random() * 0.02 });
+    }
+    function drawStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(s => {
+            s.opacity += s.speed; if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed;
+            ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+        });
+        requestAnimationFrame(drawStars);
+    }
+    window.addEventListener('resize', resize); resize(); initStars(); drawStars();
+
+    // --- SECURE MULTI-LINE DATABASE ---
+    const database = {
+        "Python": [
+            { bug: `def calculate_area(radius)\n    pi = 3.14159\n    area = pi * (radius ** 2)\n    return area\n\nprint(calculate_area(5))`, fix: "radius):", obj: "Fix the function definition syntax." },
+            { bug: `def check_status(score):\n    if score > 90\n        return "A"\n    else\n        return "B"\n\nprint(check_status(95))`, fix: "90:", obj: "Add the missing colon in the IF statement." }
+        ],
+        "JavaScript": [
+            { bug: `const initSystem = () => {\n    const version = 1.2;\n    version = 1.3;\n    console.log("System version: " + version);\n};`, fix: "let version", obj: "A 'const' variable cannot be reassigned." },
+            { bug: `function updateUI() {\n    const element = document.getElementByID("status");\n    element.innerText = "Processing...";\n    return true;\n}`, fix: "ById", obj: "Correct the camelCase for the DOM method." }
+        ],
+        "C": [
+            { bug: `#include <stdio.h>\n\nint main() {\n    printf(Access Granted);\n    return 0;\n}`, fix: "\"Access Granted\"", obj: "Strings in C must be enclosed in double quotes." },
+            { bug: `#include <stdio.h>\n\nint main() {\n    int count = 10\n    printf("Count: %d", count);\n    return 0;\n}`, fix: "10;", obj: "Add the missing semicolon at the end of the line." }
+        ],
+        "C++": [
+            { bug: `#include <iostream>\n\nint main() {\n    cout << "Link established" << endl;\n    return 0;\n}`, fix: "std::", obj: "Add the standard namespace prefix to cout." },
+            { bug: `#include <vector>\n\nint main() {\n    std::vector<int> v;\n    v.add(10);\n    return 0;\n}`, fix: "push_back", obj: "Correct the method for adding vector elements." }
+        ],
+        "Java": [
+            { bug: `public class Main {\n    public void main(String[] args) {\n        System.out.println("Started");\n    }\n}`, fix: "static void", obj: "The main method must be static." },
+            { bug: `public class Data {\n    String value = 100;\n}`, fix: "int value", obj: "Correct the incompatible data type assignment." }
+        ],
+        "HTML": [
+            { bug: `\n<img src="avatar.png">\n<p>Profile Picture</p>`, fix: "alt=", obj: "Add missing accessibility alt text." },
+            { bug: `\n<a link="https://google.com">Search</a>\n<nav>Footer</nav>`, fix: "href=", obj: "The attribute for links is 'href', not 'link'." }
+        ],
+        "MySQL": [
+            { bug: `-- Fetch all active users\nSELECT * users WHERE status = 'active';`, fix: "FROM", obj: "Specify the table using the FROM keyword." },
+            { bug: `-- Update device status\nUPDATE hardware SET status = 'offline';`, fix: "WHERE", obj: "Add a condition to prevent updating all rows." }
+        ]
+    };
+
+    let sessionState = { lockedLangs: {} };
+    let current = { lang: "", lv: 0 };
+
+    function startGame() {
+        current.lang = document.getElementById('lang-select').value;
+        if(sessionState.lockedLangs[current.lang] !== undefined) {
+            document.getElementById('lockout-status').innerText = "ERROR: ACCESS REVOKED.";
+            return;
+        }
+        current.lv = 0;
+        document.getElementById('lockout-status').innerText = "";
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        renderLevel();
+    }
+
+    function renderLevel() {
+        const langData = database[current.lang];
+        const task = langData[current.lv];
+        document.getElementById('code-box').innerText = task.bug;
+        document.getElementById('objective-text').innerText = "OBJECTIVE: " + task.obj;
+        document.getElementById('user-input').value = "";
+        document.getElementById('level-tracker').innerText = `LVL: ${current.lv + 1}/${langData.length}`;
+        document.getElementById('user-input').focus();
+    }
+
+    function checkFix() {
+        const input = document.getElementById('user-input').value;
+        const langData = database[current.lang];
+        const solution = langData[current.lv].fix;
+        
+        if(input.toLowerCase().includes(solution.toLowerCase())) {
+            showToast("ACCESS GRANTED", "var(--aurora-green)");
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            current.lv++;
+            if(current.lv < langData.length) {
+                setTimeout(renderLevel, 1000);
+            } else { 
+                alert("LANGUAGE MASTERED!"); 
+                resetToHome(); 
+            }
+        } else {
+            showToast("ACCESS DENIED", "var(--warn-red)");
+        }
+    }
+
+    function showToast(msg, color) {
+        const t = document.getElementById('toast-msg');
+        t.innerText = msg; t.style.color = color;
+        t.classList.remove('hidden', 'animate__fadeOutUp');
+        t.classList.add('animate__fadeInDown');
+        setTimeout(() => { t.classList.add('animate__fadeOutUp'); }, 800);
+    }
+
+    function giveUp() {
+        const solution = database[current.lang][current.lv].fix;
+        document.getElementById('answer-text').innerText = "REVEALED: " + solution;
+        document.getElementById('modal-overlay').style.display = 'flex';
+        sessionState.lockedLangs[current.lang] = true;
+        const drop = document.getElementById('lang-select');
+        for (let i = 0; i < drop.options.length; i++) {
+            if (drop.options[i].value === current.lang) {
+                drop.options[i].disabled = true;
+                drop.options[i].text = current.lang + " (LOCKED)";
+            }
+        }
+    }
+
+    function resetToHome() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
