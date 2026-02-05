@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURORA_DEBUGGER | Secure Edition</title>
+    <title>AURORA_DEBUGGER | Campaign Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
@@ -12,9 +12,10 @@
             --aurora-green: #00ffcc;
             --aurora-purple: #a020f0;
             --aurora-blue: #00d4ff;
-            --terminal-bg: rgba(2, 12, 20, 0.85);
+            --terminal-bg: rgba(2, 12, 20, 0.9);
             --glow: 0 0 20px rgba(0, 255, 204, 0.4);
             --warn-red: #ff4b2b;
+            --locked-gray: #444;
         }
 
         body, html {
@@ -23,31 +24,20 @@
             background: #02050a;
         }
 
-        .aurora-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2; background: linear-gradient(to bottom, #02050a, #051923);
-        }
-
-        .aurora-waves {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, var(--aurora-green) 0%, transparent 40%),
-                radial-gradient(circle at 80% 40%, var(--aurora-blue) 0%, transparent 40%),
-                radial-gradient(circle at 50% 20%, var(--aurora-purple) 0%, transparent 50%);
-            filter: blur(80px); opacity: 0.4;
-            animation: aurora-drift 12s ease-in-out infinite alternate;
-        }
-
-        @keyframes aurora-drift {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
-            50% { transform: scale(1.1) translate(2%, 5%); opacity: 0.5; }
-            100% { transform: scale(1) translate(-2%, -3%); opacity: 0.3; }
-        }
-
+        /* --- BACKGROUND ANIMATION --- */
+        .aurora-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(to bottom, #02050a, #051923); }
+        .aurora-waves { position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: radial-gradient(circle at 20% 30%, var(--aurora-green) 0%, transparent 40%), radial-gradient(circle at 80% 40%, var(--aurora-blue) 0%, transparent 40%), radial-gradient(circle at 50% 20%, var(--aurora-purple) 0%, transparent 50%); filter: blur(80px); opacity: 0.4; animation: aurora-drift 12s ease-in-out infinite alternate; }
+        @keyframes aurora-drift { 0% { transform: scale(1) translate(0, 0); opacity: 0.3; } 100% { transform: scale(1.1) translate(-2%, -3%); opacity: 0.3; } }
         canvas#starfield { position: fixed; top: 0; left: 0; z-index: -1; }
 
-        .master-container { height: 100vh; display: flex; justify-content: center; align-items: center; }
+        /* --- SCREENS --- */
+        .screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; }
+        
+        /* Welcome Screen */
+        #welcome-screen h1 { font-size: 4rem; letter-spacing: 10px; margin-bottom: 10px; text-shadow: var(--glow); }
+        #welcome-screen p { font-size: 1.5rem; color: var(--aurora-blue); max-width: 600px; margin-bottom: 40px; }
 
+        /* --- TERMINAL & LAYOUT --- */
         .terminal {
             background: var(--terminal-bg); width: 95vw; max-width: 1100px;
             height: 85vh; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.3);
@@ -55,7 +45,6 @@
             backdrop-filter: blur(15px); display: flex; flex-direction: column;
             overflow: hidden; animation: terminal-float 6s ease-in-out infinite;
         }
-
         @keyframes terminal-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         .status-bar {
@@ -66,58 +55,43 @@
         }
 
         .content-area { display: flex; flex: 1; padding: 25px; gap: 20px; overflow-y: auto; }
-        .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; text-align: left; }
 
-        .start-text { font-size: 3rem; color: #fff; margin-bottom: 20px; font-weight: 700; }
-        
-        select {
-            background: #000; color: var(--aurora-green); border: 2px solid var(--aurora-green); 
-            padding: 12px 30px; font-size: 1.3rem; border-radius: 10px; font-family: 'Rajdhani';
-            cursor: pointer; outline: none;
+        /* --- LEVEL SELECTION --- */
+        .lvl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 40px; width: 100%; box-sizing: border-box; }
+        .lvl-card {
+            background: rgba(255,255,255,0.05); border: 2px solid var(--aurora-blue);
+            padding: 20px; border-radius: 12px; cursor: pointer; transition: 0.3s;
+            text-align: center; position: relative; color: white;
         }
+        .lvl-card:hover:not(.locked) { background: rgba(0, 255, 204, 0.2); transform: scale(1.05); box-shadow: 0 0 15px var(--aurora-blue); }
+        .lvl-card.locked { border-color: var(--locked-gray); opacity: 0.4; cursor: not-allowed; }
 
-        .btn-patch {
-            background: var(--aurora-green); color: #020c14; border: none;
-            padding: 15px 35px; margin-top: 15px; font-family: 'Rajdhani';
-            font-weight: 900; font-size: 1.2rem; cursor: pointer;
-            border-radius: 8px; transition: 0.3s; text-transform: uppercase;
-        }
-
-        .btn-patch:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--aurora-green); background: #fff; }
-
+        /* --- NEON UI --- */
         .label { font-weight: 700; letter-spacing: 2px; color: var(--aurora-green); margin-bottom: 8px; font-size: 1rem; }
-        .code-screen {
-            background: rgba(0, 0, 0, 0.5); border-radius: 10px; padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1); color: #eee;
-            font-family: 'Share Tech Mono', monospace; font-size: 1.1rem;
-            flex-grow: 1; white-space: pre; overflow-x: auto;
+        .code-screen { 
+            background: rgba(0, 20, 15, 0.95); border: 2px solid var(--aurora-green); 
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); border-radius: 10px; 
+            padding: 20px; color: #fff; font-family: 'Share Tech Mono', monospace; 
+            font-size: 1rem; flex-grow: 1; white-space: pre-wrap; overflow-y: auto; position: relative; line-height: 1.4;
+        }
+        .lang-tag { position: absolute; top: 10px; right: 10px; background: var(--aurora-purple); color: white; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; font-weight: bold; }
+        textarea { 
+            background: rgba(0, 20, 15, 0.95); border: 2px solid var(--aurora-green); 
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); border-radius: 10px; 
+            padding: 15px; color: #fff; font-family: 'Share Tech Mono', monospace; 
+            height: 100px; resize: none; outline: none; margin-bottom: 10px; font-size: 1rem;
         }
 
-        textarea {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--aurora-green);
-            border-radius: 10px; padding: 15px; color: #fff;
-            font-family: 'Share Tech Mono', monospace; font-size: 1rem;
-            height: 150px; resize: none; outline: none; transition: 0.3s;
-        }
+        .btn-patch { background: var(--aurora-green); color: #020c14; border: none; padding: 14px; font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; font-family: 'Rajdhani'; font-size: 1.1rem; }
+        .btn-patch:hover { box-shadow: 0 0 20px var(--aurora-green); filter: brightness(1.2); }
+        .btn-skip { background: transparent; border: 2px solid var(--warn-red); color: var(--warn-red); padding: 10px; font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px; width: 100%; font-family: 'Rajdhani'; }
+        .btn-skip:hover { background: var(--warn-red); color: white; box-shadow: 0 0 20px var(--warn-red); }
 
-        #modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(15px);
-            display: none; justify-content: center; align-items: center; z-index: 2000;
-        }
-
-        .modal-card {
-            background: #0a141d; border: 2px solid var(--aurora-blue);
-            padding: 40px; border-radius: 15px; text-align: center; max-width: 450px;
-        }
-
-        .answer-reveal {
-            font-family: 'Share Tech Mono', monospace; font-size: 1.4rem;
-            color: var(--aurora-green); background: rgba(0,0,0,0.6);
-            padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px dashed var(--aurora-green);
-        }
-
-        .hidden { display: none; }
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-card { background: #0a141d; border: 2px solid var(--aurora-blue); padding: 40px; border-radius: 15px; text-align: center; max-width: 500px; color: white; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -125,196 +99,190 @@
 <div class="aurora-bg"><div class="aurora-waves"></div></div>
 <canvas id="starfield"></canvas>
 
-<div id="modal-overlay">
-    <div class="modal-card animate__animated animate__zoomIn">
-        <h2 style="color:var(--aurora-blue); margin-top:0;">SESSION TERMINATED</h2>
-        <p style="color: #ccc;">Access to this language has been locked for this session.</p>
-        <div class="answer-reveal" id="answer-text"></div>
-        <button class="btn-patch" onclick="resetToHome()">RETURN TO HOME</button>
-    </div>
+<div id="welcome-screen" class="screen animate__animated animate__fadeIn">
+    <h1 class="animate__animated animate__pulse animate__infinite">AURORA_SYSTEMS</h1>
+    <p>The global data core has been corrupted. Only a master debugger can rewrite the logic and save the network. Are you ready to initialize?</p>
+    <button class="btn-patch" style="width: 350px; font-size: 1.5rem;" onclick="enterChallenge()">ENTER INTO THE CHALLENGE</button>
 </div>
 
-<div id="toast-msg" class="animate__animated hidden" style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; z-index: 1000; pointer-events: none;"></div>
-
-<div class="master-container">
+<div id="game-container" class="screen hidden">
     <div class="terminal">
         <div class="status-bar">
-            <span>AURORA_SYSTEMS_V2.0</span>
-            <span id="level-tracker">LVL: --</span>
-            <span>UPLINK: ONLINE</span>
+            <span>CORE_OS_v4.0</span>
+            <span id="overall-score-display">TOTAL SCORE: 0/2500</span>
+            <span id="level-tracker">UPLINK_PENDING</span>
         </div>
 
-        <div id="start-screen" style="text-align: center; margin-top: 80px;">
-            <h1 class="start-text">CHOOSE LANGUAGE</h1>
-            <select id="lang-select">
-                <option value="Python">Python</option>
-                <option value="JavaScript">JavaScript</option>
-                <option value="C">C</option>
-                <option value="C++">C++</option>
-                <option value="Java">Java</option>
-                <option value="HTML">HTML</option>
-                <option value="MySQL">MySQL</option>
-            </select><br><br>
-            <button class="btn-patch" style="width: 280px;" onclick="startGame()">START CHALLENGE</button>
-            <p id="lockout-status" style="color: var(--warn-red); margin-top: 15px; font-weight: bold;"></p>
+        <div id="start-screen" class="animate__animated animate__fadeIn">
+            <h1 style="text-align: center; margin-top: 20px; letter-spacing: 3px; color: var(--aurora-green);">SELECT SECTOR</h1>
+            <div class="lvl-grid" id="level-grid"></div>
         </div>
 
-        <div id="game-screen" class="content-area hidden">
+        <div id="game-screen" class="content-area hidden animate__animated animate__fadeIn">
             <div class="pane">
-                <div class="label">ENCRYPTED_DATA</div>
-                <div id="code-box" class="code-screen"></div>
+                <div class="label" id="current-difficulty-label">DIFFICULTY: EASY</div>
+                <div class="code-screen">
+                    <div id="lang-tag" class="lang-tag">PYTHON</div>
+                    <div id="code-box"></div>
+                </div>
                 <p id="objective-text" style="color: var(--aurora-blue); font-size: 0.9rem; margin-top: 10px; font-weight: bold;"></p>
             </div>
             
             <div class="pane">
                 <div class="label">REPAIR_BUFFER</div>
-                <textarea id="user-input" placeholder="Enter fix..."></textarea>
-                <button class="btn-patch" onclick="checkFix()">PATCH CODE</button>
-                <button style="background:transparent; border:1px solid var(--warn-red); color:var(--warn-red); margin-top:12px; cursor:pointer; padding:8px; font-family:'Rajdhani'; font-weight:bold; border-radius:5px;" onclick="giveUp()">REVEAL ANSWER</button>
+                <textarea id="user-input" placeholder="Type the exact fix..."></textarea>
+                <button class="btn-patch" onclick="checkFix()">APPLY PATCH</button>
+                <button class="btn-skip" onclick="skipQuestion()">SKIP DATA BLOCK</button>
+                <div id="lvl-score-tracker" style="margin-top:20px; color: var(--aurora-green); font-family: 'Share Tech Mono'; font-size: 1.2rem;">LEVEL_SCORE: 0</div>
             </div>
         </div>
     </div>
 </div>
 
+<div id="modal-overlay">
+    <div class="modal-card animate__animated animate__zoomIn" id="modal-content"></div>
+</div>
+
+<div id="toast-msg" class="animate__animated hidden" style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; z-index: 1000; pointer-events: none;"></div>
+
 <script>
-    // --- STARFIELD BACKGROUND ---
+    // --- STARFIELD ---
     const canvas = document.getElementById('starfield');
     const ctx = canvas.getContext('2d');
     let stars = [];
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    function initStars() {
-        stars = [];
-        for(let i=0; i<200; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, opacity: Math.random(), speed: Math.random() * 0.02 });
-    }
-    function drawStars() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        stars.forEach(s => {
-            s.opacity += s.speed; if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed;
-            ctx.fillStyle = 'rgba(255, 255, 255, ' + s.opacity + ')';
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
-        });
-        requestAnimationFrame(drawStars);
-    }
+    function initStars() { stars = []; for(let i=0; i<200; i++) stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, opacity: Math.random(), speed: Math.random() * 0.02 }); }
+    function drawStars() { ctx.clearRect(0, 0, canvas.width, canvas.height); stars.forEach(s => { s.opacity += s.speed; if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed; ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill(); }); requestAnimationFrame(drawStars); }
     window.addEventListener('resize', resize); resize(); initStars(); drawStars();
 
-    // --- EXPANDED 5-LINE DATABASE ---
-    const database = {
-        "Python": [
-            { bug: "def calculate_area(radius)\n    pi = 3.14159\n    area = pi * (radius ** 2)\n    print('Calculation complete')\n    return area", fix: "radius):", obj: "Fix the function definition syntax." },
-            { bug: "def check_status(score):\n    if score > 90\n        msg = 'Grade A'\n    else:\n        msg = 'Grade B'\n    return msg", fix: "90:", obj: "Add the missing colon in the IF statement." },
-            { bug: "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.hp = 100\np1 = Player('Aurora')\nprint p1.name", fix: "print(p1.name)", obj: "Update print for Python 3." },
-            { bug: "items = ['core', 'cpu', 'ram']\nfor i in items\n    print('Checking component...')\n    print(i)\n    print('Status: OK')", fix: "in items:", obj: "Complete the FOR loop header." },
-            { bug: "def login(user):\n    try:\n        print('Logging in...')\n        res = 10 / 0\n    except\n        print('Error')", fix: "except:", obj: "Missing colon in except block." }
-        ],
-        "JavaScript": [
-            { bug: "const init = () => {\n    const ver = 1.2;\n    ver = 1.3;\n    console.log('System: ' + ver);\n};", fix: "let ver", obj: "Cannot reassign a constant." },
-            { bug: "function updateUI() {\n    const el = document.getElementByID('status');\n    el.innerText = 'Syncing...';\n    return true;\n}", fix: "ById", obj: "Fix the DOM method camelCase." },
-            { bug: "const timer = (msg) => {\n    setTimeout(console.log(msg), 1000);\n    console.log('Timer active');\n};", fix: "() =>", obj: "Wrap code in a callback function." },
-            { bug: "const user = {\n    name: 'Dev',\n    rank: 5\n    access: true\n};\nconsole.log(user);", fix: "5,", obj: "Add the missing comma." },
-            { bug: "async function getData() {\n    const res = fetch('https://api.io');\n    const data = res.json();\n    console.log(data);\n}", fix: "await", obj: "Await the fetch and json calls." }
-        ],
-        "HTML": [
-            { bug: "<img src='avatar.png'>\n<p>Profile Active</p>\n<span>User: Admin</span>\n<div>Verified</div>", fix: "alt=", obj: "Add missing accessibility alt text." },
-            { bug: "<ul class='list'>\n  <li>System Check</li>\n  <li>Kernel Boot\n  <li>Sync</li>\n  <li>Ready</li>", fix: "</ul>", obj: "Close the unordered list container." },
-            { bug: "<div>\n  <h1 id='title'>Header</h3>\n  <p>Subtext here</p>\n</div>", fix: "</h1>", obj: "Fix the mismatched header tags." },
-            { bug: "<table>\n  <td>Unit 01</td>\n  <td>Online</td>\n  <td>50ms</td>\n</table>", fix: "<tr>", obj: "Wrap table cells inside a row (tr)." },
-            { bug: "<scr" + "ipt 'app.js'></scr" + "ipt>\n<p>Loading...</p>\n<p>Please wait</p>", fix: "src=", obj: "Use 'src=' for script source." }
-        ],
-        "C": [
-            { bug: "#include <stdio.h>\n\nint main() {\n    printf(Access Granted);\n    return 0;\n}", fix: "\"Access Granted\"", obj: "Strings in C must be enclosed in double quotes." },
-            { bug: "#include <stdio.h>\n\nint main() {\n    int count = 10\n    printf(\"Counter set to: %d\", count);\n    return 0;\n}", fix: "10;", obj: "Add the missing semicolon at the end of the line." },
-            { bug: "int main() {\n    int buffer;\n    printf(\"Input security code: \");\n    scanf(\"%d\", buffer);\n    return 0;\n}", fix: "&buffer", obj: "scanf requires the address-of operator (&)." },
-            { bug: "void main() {\n    printf(\"Initializing kernel...\\n\");\n    printf(\"Ready.\\n\");\n    return 0;\n}", fix: "int main()", obj: "The standard entry point must return an integer." },
-            { bug: "int main() {\n    float temp = 98.6;\n    printf(\"Temp: %d\", temp);\n    return 0;\n}", fix: "%f", obj: "Use the correct format specifier for a float." },
-            { bug: "int main() {\n    int i;\n    for(i=0, i<5, i++) {\n        printf(\"Ping\\n\");\n    }\n    return 0;\n}", fix: "i=0; i<5; i++", obj: "Semicolons are required to separate for-loop parts." },
-            { bug: "int main() {\n    int arr[2] = {1, 2, 3, 4};\n    printf(\"Data: %d\", arr[0]);\n    return 0;\n}", fix: "arr[4]", obj: "The array size is too small for the given data." },
-            { bug: "int main() {\n    int *ptr = malloc(sizeof(int));\n    *ptr = 10;\n    free(ptr);\n    return 0;\n}", fix: "(int*)", obj: "Cast the return of malloc to an integer pointer." },
-            { bug: "int main() {\n    int x = 5;\n    if x == 5 {\n        printf(\"Valid\");\n    }\n    return 0;\n}", fix: "(x == 5)", obj: "Conditions in C must be wrapped in parentheses." },
-            { bug: "int main() {\n    char cmd = 'Q';\n    printf(\"Command: %c\", cmd)\n    return 0;\n}", fix: "cmd);", obj: "Missing semicolon after the printf function." }
-        ],
-        "C++": [
-            { bug: "#include <iostream>\n\nint main() {\n    cout << \"Link established\" << endl;\n    return 0;\n}", fix: "std::", obj: "Add the standard namespace prefix to cout." },
-            { bug: "#include <vector>\n\nint main() {\n    std::vector<int> v;\n    v.add(10);\n    return 0;\n}", fix: "push_back", obj: "Correct the method for adding vector elements." },
-            { bug: "#include <string>\n\nint main() {\n    std::string user = 'Guest';\n    std::cout << user;\n    return 0;\n}", fix: "\"Guest\"", obj: "C++ strings require double quotes." },
-            { bug: "class Server {\n    int port = 8080;\n};\n\nint main() {\n    Server s;\n    s.port = 9000;\n}", fix: "public:", obj: "Make class members accessible from outside." },
-            { bug: "class Node {\n    int id;\n};\n\nint main() {\n    Node* n = Node();\n    return 0;\n}", fix: "new Node()", obj: "Use 'new' for dynamic memory allocation." },
-            { bug: "#include <iostream.h>\n\nint main() {\n    std::cout << \"Booting...\";\n    return 0;\n}", fix: "<iostream>", obj: "Use the modern C++ header (omit the .h)." },
-            { bug: "int main() {\n    int& ref;\n    int x = 10;\n    ref = x;\n    return 0;\n}", fix: "ref = x", obj: "References must be initialized upon declaration." },
-            { bug: "int main() {\n    int* arr = new int[10];\n    delete arr;\n    return 0;\n}", fix: "delete[]", obj: "Use the array delete operator for memory cleanup." },
-            { bug: "template <class T>\nvoid log(T data) {\n    std::cout << data;\n}\n\nlog<int>(10);", fix: "T data", obj: "Fix the template parameter signature." },
-            { bug: "int main() {\n    int a, b;\n    std::cin >> a >> b\n    return 0;\n}", fix: "b;", obj: "Missing semicolon after the cin statement." }
-        ],
-        "Java": [
-            { bug: "public class Main {\n    public void main(String[] args) {\n        System.out.println(\"Started\");\n    }\n}", fix: "static void", obj: "The main method must be static." },
-            { bug: "public class Data {\n    String val = 100;\n    public void show() { System.out.println(val); }\n}", fix: "int val", obj: "Correct the incompatible data type assignment." },
-            { bug: "public class Logic {\n    public static void run() {\n        System.out.print(\"Running\")\n    }\n}", fix: "println", obj: "Use the method that adds a newline character." },
-            { bug: "String input = \"Admin\";\nif (input == \"Admin\") {\n    System.out.println(\"Access OK\");\n}", fix: ".equals(", obj: "Use .equals() for string value comparison." },
-            { bug: "int[] numbers = new int(10);\nnumbers[0] = 1;\nSystem.out.println(numbers[0]);", fix: "new int[10]", obj: "Use square brackets for array initialization." },
-            { bug: "import java.util.List;\n\nList<String> logs = new List<>();", fix: "ArrayList", obj: "List is an interface; instantiate ArrayList instead." },
-            { bug: "try {\n    int res = 1/0;\n} catch {\n    System.out.println(\"Error\");\n}", fix: "(Exception e)", obj: "Catch blocks require an exception parameter." },
-            { bug: "public int getLevel() {\n    System.out.println(\"Lvl 1\");\n    return;\n}", fix: "void", obj: "A method returning 'int' must return a value." },
-            { bug: "final int MAX = 100;\nif (true) {\n    MAX = 200;\n}", fix: "int MAX", obj: "Remove 'final' to allow variable reassignment." },
-            { bug: "package com.aurora\n\npublic class Core {\n    public int id = 0;\n}", fix: "aurora;", obj: "Add the missing semicolon to the package declaration." }
-        ],
-        "MySQL": [
-            { bug: "-- Fetch all active users\nSELECT * users \nWHERE status = 'active'\nAND rank > 5;", fix: "FROM", obj: "Specify the table using the FROM keyword." },
-            { bug: "-- Update device status\nUPDATE hardware \nSET status = 'offline';\n-- Danger: No filter", fix: "WHERE", obj: "Add a condition to prevent updating all rows." },
-            { bug: "-- Insert reboot log\nINSERT INTO logs (id, msg) \nVALUE (1, 'reboot');", fix: "VALUES", obj: "Correct the pluralization of the VALUES keyword." },
-            { bug: "-- Sort logs by time\nSELECT * FROM system_logs \nORDER timestamp DESC;", fix: "BY", obj: "Complete the ORDER BY clause." },
-            { bug: "-- Clear specific cache\nDELETE FROM cache \n(id = 505);", fix: "WHERE", obj: "Use the WHERE keyword for row filtering." },
-            { bug: "-- Create new table\nCREATE TABLE (id INT, name VARCHAR(50));", fix: "TABLE name", obj: "Specify a name for the new table." },
-            { bug: "-- Count active connections\nSELECT COUNT* \nFROM connections \nWHERE active = 1;", fix: "(*)", obj: "Wrap the count parameter in parentheses." },
-            { bug: "-- Paginate results\nSELECT * FROM events \nLIMIT 0, 10;", fix: "OFFSET", obj: "Define the offset explicitly." },
-            { bug: "-- Group by department\nSELECT dept FROM staff \nGROUP dept;", fix: "BY", obj: "Complete the GROUP BY clause." },
-            { bug: "-- Join users and profiles\nSELECT * FROM users \nJOIN profiles ON uid=pid;", fix: "INNER", obj: "Specify the join type (e.g., INNER)." }
-        ]
-        // Note: You can follow this pattern to add your C, C++, Java, and MySQL levels back!
-    };
-
-    let sessionState = { lockedLangs: {} };
-    let current = { lang: "", lv: 0 };
-
-    function startGame() {
-        current.lang = document.getElementById('lang-select').value;
-        if(sessionState.lockedLangs[current.lang] !== undefined) {
-            document.getElementById('lockout-status').innerText = "ERROR: ACCESS REVOKED.";
-            return;
-        }
-        current.lv = 0;
-        document.getElementById('lockout-status').innerText = "";
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
-        renderLevel();
+    function enterChallenge() {
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('game-container').classList.remove('hidden');
+        initMenu();
     }
 
-    function renderLevel() {
-        const langData = database[current.lang];
-        const task = langData[current.lv];
-        document.getElementById('code-box').innerText = task.bug;
-        document.getElementById('objective-text').innerText = "OBJECTIVE: " + task.obj;
+    // --- GAME DATA ---
+    const levels = [
+        { name: "BASIC_INIT", diff: "Easy", count: 10, pts: 50, unlocked: true, score: 0, completed: false },
+        { name: "NEURAL_SYNC", diff: "Medium", count: 5, pts: 100, unlocked: false, score: 0, completed: false },
+        { name: "CORE_REPAIR", diff: "Hard", count: 3, pts: 200, unlocked: false, score: 0, completed: false },
+        { name: "VOID_BREACH", diff: "Extra Hard", count: 2, pts: 300, unlocked: false, score: 0, completed: false },
+        { name: "MASTER_OVERRIDE", diff: "Master", count: 1, pts: 500, unlocked: false, score: 0, completed: false }
+    ];
+
+    const campaignPool = [
+        // Easy
+        { lang: "Python", bug: "def system_check(node):\n    print('Scanning ' + node)\n    status = 'Active'\n    if status == 'Active'\n        return True\n    return False", fix: "Active':", obj: "Missing colon in IF statement.", diff: "Easy" },
+        { lang: "C", bug: "#include <stdio.h>\n\nint main() {\n    int ver = 2;\n    printf(Aurora v%d, ver);\n    return 0;\n}", fix: '"Aurora v%d, ver"', obj: "Missing double quotes in printf.", diff: "Easy" },
+        { lang: "JS", bug: "const core_temp = 45;\nif (core_temp > 40) {\n    core_temp = 30;\n    console.log('Cooling...');\n}", fix: "let core_temp", obj: "Cannot reassign a constant.", diff: "Easy" },
+        { lang: "HTML", bug: "<div>\n    <h1>System Menu</h1>\n    <img src='icon.png'>\n    <p>Click to start</p>\n</div>", fix: "alt=", obj: "Missing alt attribute for image.", diff: "Easy" },
+        { lang: "Java", bug: "public class Main {\n    public void main(String[] args) {\n        System.out.println('Online');\n    }\n}", fix: "static void", obj: "Main method must be static.", diff: "Easy" },
+        { lang: "MySQL", bug: "SELECT * users\nWHERE id = 1\nAND status = 'live';", fix: "FROM", obj: "Missing FROM keyword.", diff: "Easy" },
+        { lang: "C++", bug: "int main() {\n    int i = 0;\n    while(i < 5) {\n        cout << i << endl;\n        i++;\n    }\n}", fix: "std::", obj: "Missing standard namespace.", diff: "Easy" },
+        { lang: "Python", bug: "items = ['CPU', 'RAM']\nfor x in items\n    print('Checking: ' + x)\n    time.sleep(1)", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
+        { lang: "JS", bug: "function alert() {\n    document.getElementByid('msg')\n    .innerText = 'Warning!';\n}", fix: "ById", obj: "Fix camelCase for DOM method.", diff: "Easy" },
+        { lang: "C", bug: "int main() {\n    int limit = 100\n    printf(\"Limit: %d\", limit);\n    return 0;\n}", fix: "100;", obj: "Missing semicolon.", diff: "Easy" },
+        // Medium
+        { lang: "JS", bug: "async function fetchData() {\n    const response = fetch('api/data');\n    const data = response.json();\n    return data;\n}", fix: "await", obj: "Functions returning promises must be awaited.", diff: "Medium" },
+        { lang: "Java", bug: "String[] logs = {'init', 'sync'};\nfor(int i=0; i <= logs.length; i++) {\n    System.out.println(logs[i]);\n}", fix: "i < logs", obj: "Fix array index out of bounds.", diff: "Medium" },
+        { lang: "C", bug: "void update(int val) {\n    int *ptr;\n    ptr = val;\n    printf(\"Val: %d\", *ptr);\n}", fix: "&val", obj: "Pointer must store the address of the variable.", diff: "Medium" },
+        { lang: "MySQL", bug: "UPDATE inventory\nSET status = 'deployed';\n-- All records will be updated!", fix: "WHERE", obj: "Add a filter to prevent mass corruption.", diff: "Medium" },
+        { lang: "Python", bug: "def login():\n    try:\n        auth = True\n        print(auth)\n    except\n        print('Error')\n    finally:\n        close()", fix: "except:", obj: "Except block requires a colon.", diff: "Medium" },
+        // Hard
+        { lang: "C++", bug: "class Security {\n    int key = 99;\n};\n\nint main() {\n    Security s;\n    s.key = 100;\n    return 0;\n}", fix: "public:", obj: "Class members are private by default.", diff: "Hard" },
+        { lang: "Java", bug: "import java.util.List;\n\npublic class Core {\n    List<String> nodes = new List<>();\n}", fix: "ArrayList", obj: "Interfaces cannot be instantiated.", diff: "Hard" },
+        { lang: "Python", bug: "class Drone:\n    def __init__(n):\n        name = n\n    def fly():\n        print('Flying')", fix: "self", obj: "Instance methods require self parameter.", diff: "Hard" },
+        // Extra Hard
+        { lang: "C", bug: "int main() {\n    int i;\n    for(i=0, i < 10, i++) {\n        if(i % 2 == 0) printf(\"Even\");\n    }\n    return 0;\n}", fix: ";", obj: "For loop parameters use semicolons.", diff: "Extra Hard" },
+        { lang: "JS", bug: "const process = (data) => {\n    return new Promise(res => res(data));\n}\nprocess('Run').then(console.log('Success'))", fix: "() =>", obj: "Then() requires a function callback.", diff: "Extra Hard" },
+        // Master
+        { lang: "C++", bug: "#include <iostream>\n#include <vector>\n\ntemplate <T>\nvoid sync_array(T arr[], int size) {\n    for(int i=0; i < size; i++) {\n        std::cout << \"Syncing: \" << arr[i] << std::endl;\n    }\n}\n\nint main() {\n    int data[3] = {10, 20, 30};\n    sync_array(data, 3);\n    return 0;\n}", fix: "template <typename T>", obj: "Fix the template type parameter declaration.", diff: "Master" }
+    ];
+
+    let state = { lvlIdx: 0, questIdx: 0, lvlScore: 0, totalScore: 0, questions: [] };
+
+    function initMenu() {
+        const grid = document.getElementById('level-grid');
+        grid.innerHTML = '';
+        state.totalScore = levels.reduce((sum, l) => sum + l.score, 0); // Calculate true total
+        
+        levels.forEach((l, i) => {
+            const card = document.createElement('div');
+            card.className = `lvl-card ${l.unlocked ? '' : 'locked'}`;
+            let scoreInfo = l.completed ? `<br><small style="color:var(--aurora-green)">SCORE: ${l.score}/${l.count*l.pts}</small>` : '';
+            card.innerHTML = `<h3>${l.name}</h3><p>${l.diff}</p><small>${l.count} DATA BLOCKS</small>${scoreInfo}<br>${l.unlocked ? '' : '<span style="color:var(--warn-red)">ENCRYPTED</span>'}`;
+            if(l.unlocked) card.onclick = () => startLevel(i);
+            grid.appendChild(card);
+        });
+        document.getElementById('overall-score-display').innerText = `TOTAL SCORE: ${state.totalScore}/2500`;
+    }
+
+    function startLevel(i) {
+        state.lvlIdx = i;
+        state.questIdx = 0;
+        state.lvlScore = 0; // Fresh level start
+        state.questions = campaignPool.filter(q => q.diff === levels[i].diff);
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = state.questions[state.questIdx];
+        document.getElementById('code-box').innerText = q.bug;
+        document.getElementById('lang-tag').innerText = q.lang.toUpperCase();
+        document.getElementById('objective-text').innerText = "OBJECTIVE: " + q.obj;
+        document.getElementById('current-difficulty-label').innerText = `DIFFICULTY: ${q.diff.toUpperCase()}`;
+        document.getElementById('level-tracker').innerText = `BLOCK: ${state.questIdx + 1}/${levels[state.lvlIdx].count}`;
+        document.getElementById('lvl-score-tracker').innerText = `LEVEL_SCORE: ${state.lvlScore}`;
         document.getElementById('user-input').value = "";
-        document.getElementById('level-tracker').innerText = "LVL: " + (current.lv + 1) + "/" + langData.length;
-        document.getElementById('user-input').focus();
     }
 
     function checkFix() {
-        const input = document.getElementById('user-input').value;
-        const langData = database[current.lang];
-        const solution = langData[current.lv].fix;
+        const input = document.getElementById('user-input').value.trim();
+        const sol = state.questions[state.questIdx].fix;
+        if(input.toLowerCase().includes(sol.toLowerCase())) {
+            showToast("DATA STABILIZED", "var(--aurora-green)");
+            confetti({ particleCount: 40, spread: 50 });
+            state.lvlScore += levels[state.lvlIdx].pts;
+            advance();
+        } else { showToast("LOGIC ERROR", "var(--warn-red)"); }
+    }
+
+    function skipQuestion() {
+        showToast("SKIPPED", "#888");
+        advance();
+    }
+
+    function advance() {
+        state.questIdx++;
+        if(state.questIdx < levels[state.lvlIdx].count) { setTimeout(renderQuestion, 600); }
+        else { setTimeout(showLevelComplete, 600); }
+    }
+
+    function showLevelComplete() {
+        const cur = levels[state.lvlIdx];
+        cur.score = state.lvlScore; // OVERWRITE old score with new score
+        cur.completed = true;
         
-        if(input.toLowerCase().includes(solution.toLowerCase())) {
-            showToast("ACCESS GRANTED", "var(--aurora-green)");
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            current.lv++;
-            if(current.lv < langData.length) {
-                setTimeout(renderLevel, 1000);
-            } else { 
-                alert("LANGUAGE MASTERED!"); 
-                resetToHome(); 
-            }
-        } else {
-            showToast("ACCESS DENIED", "var(--warn-red)");
-        }
+        if(state.lvlIdx + 1 < levels.length) levels[state.lvlIdx + 1].unlocked = true;
+
+        const modal = document.getElementById('modal-overlay');
+        const content = document.getElementById('modal-content');
+        modal.style.display = 'flex';
+        content.innerHTML = `
+            <h1 style="color:var(--aurora-green)">SECTOR CLEANED</h1>
+            <p>CONGRATULATIONS! Sector <b>${cur.name}</b> sync complete.</p>
+            <div style="font-size: 2.5rem; margin: 20px 0; font-family: 'Share Tech Mono'">${state.lvlScore} / ${cur.count * cur.pts}</div>
+            <p style="color: var(--aurora-blue)">Sector score updated. Previous records purged.</p>
+            <button class="btn-patch" style="width:100%" onclick="closeModal()">PROCEED TO NEXT SECTOR</button>`;
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        initMenu();
     }
 
     function showToast(msg, color) {
@@ -323,31 +291,6 @@
         t.classList.remove('hidden', 'animate__fadeOutUp');
         t.classList.add('animate__fadeInDown');
         setTimeout(() => { t.classList.add('animate__fadeOutUp'); }, 800);
-    }
-
-    function giveUp() {
-        const solution = database[current.lang][current.lv].fix;
-        document.getElementById('answer-text').innerText = "REVEALED: " + solution;
-        document.getElementById('modal-overlay').style.display = 'flex';
-        
-        // Save the level where they gave up
-        const levelReached = current.lv + 1;
-        sessionState.lockedLangs[current.lang] = levelReached;
-        
-        const drop = document.getElementById('lang-select');
-        for (let i = 0; i < drop.options.length; i++) {
-            if (drop.options[i].value === current.lang) {
-                drop.options[i].disabled = true;
-                // Update text to show exactly where they failed
-                drop.options[i].text = current.lang + " (LOCKED AT LVL " + levelReached + ")";
-            }
-        }
-    }
-
-    function resetToHome() {
-        document.getElementById('modal-overlay').style.display = 'none';
-        document.getElementById('game-screen').classList.add('hidden');
-        document.getElementById('start-screen').classList.remove('hidden');
     }
 </script>
 </body>
