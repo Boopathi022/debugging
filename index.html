@@ -100,7 +100,7 @@
 <canvas id="starfield"></canvas>
 
 <div id="welcome-screen" class="screen animate__animated animate__fadeIn">
-    <h1 class="animate__animated animate__pulse animate__infinite">AURORA_SYSTEMS</h1>
+    <h1 class="animate__animated animate__pulse animate__infinite">CODE ARENA</h1>
     <p>The global data core has been corrupted. Only a master debugger can rewrite the logic and save the network. Are you ready to initialize?</p>
     <button class="btn-patch" style="width: 350px; font-size: 1.5rem;" onclick="enterChallenge()">ENTER INTO THE CHALLENGE</button>
 </div>
@@ -163,41 +163,88 @@
 
     // --- GAME DATA ---
     const levels = [
-        { name: "BASIC_INIT", diff: "Easy", count: 10, pts: 50, unlocked: true, score: 0, completed: false },
-        { name: "NEURAL_SYNC", diff: "Medium", count: 5, pts: 100, unlocked: false, score: 0, completed: false },
-        { name: "CORE_REPAIR", diff: "Hard", count: 3, pts: 200, unlocked: false, score: 0, completed: false },
-        { name: "VOID_BREACH", diff: "Extra Hard", count: 2, pts: 300, unlocked: false, score: 0, completed: false },
-        { name: "MASTER_OVERRIDE", diff: "Master", count: 1, pts: 500, unlocked: false, score: 0, completed: false }
+        { name: "BASIC_INIT", diff: "Easy", count: 15, pts: 50, unlocked: true, score: 0, completed: false }, // 15 * 50 = 750
+        { name: "NEURAL_SYNC", diff: "Medium", count: 10, pts: 75, unlocked: false, score: 0, completed: false }, // 10 * 75 = 750
+        { name: "CORE_REPAIR", diff: "Hard", count: 5, pts: 200, unlocked: false, score: 0, completed: false },   // 5 * 200 = 1000
     ];
+    // Total: 750 + 750 + 1000 = 2500
 
     const campaignPool = [
         // Easy
         { lang: "Python", bug: "def system_check(node):\n    print('Scanning ' + node)\n    status = 'Active'\n    if status == 'Active'\n        return True\n    return False", fix: "Active':", obj: "Missing colon in IF statement.", diff: "Easy" },
         { lang: "C", bug: "#include <stdio.h>\n\nint main() {\n    int ver = 2;\n    printf(Aurora v%d, ver);\n    return 0;\n}", fix: '"Aurora v%d, ver"', obj: "Missing double quotes in printf.", diff: "Easy" },
         { lang: "JS", bug: "const core_temp = 45;\nif (core_temp > 40) {\n    core_temp = 30;\n    console.log('Cooling...');\n}", fix: "let core_temp", obj: "Cannot reassign a constant.", diff: "Easy" },
+        { lang: "Java", bug:" public class Main{\npublic static void main(String[] args){\nString s=null;\n System.out.println(s.length());\n \n }", fix: "static void", obj: "Main method must be static.", diff: "Easy" },
         { lang: "HTML", bug: "<div>\n    <h1>System Menu</h1>\n    <img src='icon.png'>\n    <p>Click to start</p>\n</div>", fix: "alt=", obj: "Missing alt attribute for image.", diff: "Easy" },
-        { lang: "Java", bug: "public class Main {\n    public void main(String[] args) {\n        System.out.println('Online');\n    }\n}", fix: "static void", obj: "Main method must be static.", diff: "Easy" },
-        { lang: "MySQL", bug: "SELECT * users\nWHERE id = 1\nAND status = 'live';", fix: "FROM", obj: "Missing FROM keyword.", diff: "Easy" },
-        { lang: "C++", bug: "int main() {\n    int i = 0;\n    while(i < 5) {\n        cout << i << endl;\n        i++;\n    }\n}", fix: "std::", obj: "Missing standard namespace.", diff: "Easy" },
-        { lang: "Python", bug: "items = ['CPU', 'RAM']\nfor x in items\n    print('Checking: ' + x)\n    time.sleep(1)", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
-        { lang: "JS", bug: "function alert() {\n    document.getElementByid('msg')\n    .innerText = 'Warning!';\n}", fix: "ById", obj: "Fix camelCase for DOM method.", diff: "Easy" },
-        { lang: "C", bug: "int main() {\n    int limit = 100\n    printf(\"Limit: %d\", limit);\n    return 0;\n}", fix: "100;", obj: "Missing semicolon.", diff: "Easy" },
-        // Medium
-        { lang: "JS", bug: "async function fetchData() {\n    const response = fetch('api/data');\n    const data = response.json();\n    return data;\n}", fix: "await", obj: "Functions returning promises must be awaited.", diff: "Medium" },
-        { lang: "Java", bug: "String[] logs = {'init', 'sync'};\nfor(int i=0; i <= logs.length; i++) {\n    System.out.println(logs[i]);\n}", fix: "i < logs", obj: "Fix array index out of bounds.", diff: "Medium" },
-        { lang: "C", bug: "void update(int val) {\n    int *ptr;\n    ptr = val;\n    printf(\"Val: %d\", *ptr);\n}", fix: "&val", obj: "Pointer must store the address of the variable.", diff: "Medium" },
-        { lang: "MySQL", bug: "UPDATE inventory\nSET status = 'deployed';\n-- All records will be updated!", fix: "WHERE", obj: "Add a filter to prevent mass corruption.", diff: "Medium" },
+        { lang: "Python", bug: "s = hello \n print(s.upper) \n ", diff: "Easy" },
+        { lang: "JS", bug: "Let a = [1,2,3];\n a.concat([4,5]); \nconsole.log(a); \n", diff: "Easy" },
+        { lang: "C", bug: "#include <stdio.h>\n\nint main() {\n    int a = 5, b = 10;\n    printf(\"Sum = %d\", a + b)\n    return 0;\n}\n", fix: "std::", obj: "Missing standard namespace.", diff: "Easy" },
+        { lang: "Java", bug: "public class Main{\n \" +\"public static void main(String[] args){\n \" +\"  System.out.println(\"Sum = \"+(10+20));\n" +"    }\n" +"}\n", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
+        { lang: "HTML", bug: "<html>\n" +"<body>\n" +" <p>Hello World\n" +"    <p>Welcome to HTML</p>\n" +"</body>\n" +"</html>\n", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
         { lang: "Python", bug: "def login():\n    try:\n        auth = True\n        print(auth)\n    except\n        print('Error')\n    finally:\n        close()", fix: "except:", obj: "Except block requires a colon.", diff: "Medium" },
-        // Hard
-        { lang: "C++", bug: "class Security {\n    int key = 99;\n};\n\nint main() {\n    Security s;\n    s.key = 100;\n    return 0;\n}", fix: "public:", obj: "Class members are private by default.", diff: "Hard" },
-        { lang: "Java", bug: "import java.util.List;\n\npublic class Core {\n    List<String> nodes = new List<>();\n}", fix: "ArrayList", obj: "Interfaces cannot be instantiated.", diff: "Hard" },
-        { lang: "Python", bug: "class Drone:\n    def __init__(n):\n        name = n\n    def fly():\n        print('Flying')", fix: "self", obj: "Instance methods require self parameter.", diff: "Hard" },
-        // Extra Hard
-        { lang: "C", bug: "int main() {\n    int i;\n    for(i=0, i < 10, i++) {\n        if(i % 2 == 0) printf(\"Even\");\n    }\n    return 0;\n}", fix: ";", obj: "For loop parameters use semicolons.", diff: "Extra Hard" },
-        { lang: "JS", bug: "const process = (data) => {\n    return new Promise(res => res(data));\n}\nprocess('Run').then(console.log('Success'))", fix: "() =>", obj: "Then() requires a function callback.", diff: "Extra Hard" },
+        { lang: "JS", bug: "let x = 5; \n if (x = 10)\n { \n console.log(\"Yes\"); \n }", fix: "ById", obj: "Fix camelCase for DOM method.", diff: "Easy" },
+        { lang: "C", bug: "int main() {\n    int limit = 100\n    printf(\"Limit: %d\", limit);\n    return 0;\n}", fix: "100;", obj: "Missing semicolon.", diff: "Easy" },
+        { lang: "Java", bug: "public class Main{\npublic static void main(String[] args){\nfor(int i=1;i>=5;i++){\nSystem.out.print(i+\" \");\n}\n", fix: "i < logs", obj: "Fix array index out of bounds.", diff: "Medium" },
+        { lang: "HTML", bug: "<html>\n" +"<body>\n" +"    <ul>\n" +" <li>Apple\n" +" <li>Banana</li>\n" +"<li>Orange</li>\n" +"    </ul>\n" +"</body>\n" +"</html>\n", fix: "WHERE", obj: "Add a filter to prevent mass corruption.", diff: "Medium" },
+         
+        // Medium
+        { lang: "Python", bug: "numbers = [1, 2, 3, 4, 5, 6] \n sum = 0\n for i in numbers:\n if i % 2 == 1:\n  sum += i\n print(\"Sum =\", sum)\n", fix: "Active':", obj: "Missing colon in IF statement.", diff: "Easy" },
+        { lang: "C", bug: "#include <stdio.h> \n int fact(int n) \n { \n if(n == 0) \n return 0;  \n else  \n  return n * fact(n - 1); \n \n } \n int main() { \n    printf(\"%d\", fact(5));\n   return 0; \n ", fix: '"Aurora v%d, ver"', obj: "Missing double quotes in printf.", diff: "Easy" },
+        { lang: "JS", bug: "let str = \"education\";\nlet count = 0;\n\nfor (let ch of str) {\n    if (ch == 'a' || 'e' || 'i' || 'o' || 'u') {\n        count++;\n    }\n}\n\nconsole.log(count);\n", fix: "let core_temp", obj: "Cannot reassign a constant.", diff: "Easy" },
+        { lang: "Java", bug:" public class Main{ \n public static void main(String[] args) \n { \n  System.out.println(5/2); \n} \n}", fix: "static void", obj: "Main method must be static.", diff: "Easy" },
+        { lang: "HTML", bug: "<html>\n \" +\"<body\n" +"    <table border=\"1\">\n" +"        <tr>\n" +
+"            <td>Name</td>\n" +
+"            <td>Age</td>\n" +
+"        </tr>\n" +
+"        <tr>\n" +
+"            <td>Priya</td>\n" +
+"            <td>20\n" +
+"        </tr>\n" +
+"    </table>\n" +
+"</body>\n" +
+"</html>\n", fix: "alt=", obj: "Missing alt attribute for image.", diff: "Easy" },
+        { lang: "Python", bug: "numbers = [1, 2, 3, 4, 5, 6]\nsum = 0\n\nfor i in numbers:\n    if i % 2 == 1:\n sum += i \n print(sum)\n ", diff: "Easy" },
+        { lang: "JS", bug: "console.log(parseInt(\"10.5\") + 1);", diff: "Easy" },
+        { lang: "C", bug: "#include <stdio.h>\n\nint main() {\n    int i;\n    for(i = 1; i <= 5; i--);\n        printf(\"%d \", i);\n\n    return 0;\n}\n", fix: "std::", obj: "Missing standard namespace.", diff: "Easy" },
+        { lang: "Java", bug: "public class Main{ \n public static void main(String[] args) \n Scanner sc=new Scanner(System.in); \n \n int x=sc.nextInt(); \n System.out.println(x);  \n  } \n }\n", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
+        { lang: "HTML", bug: "<html>\n<body>\n    <h1>Welcome\n    <p>This is HTML debugging</p>\n</body>\n</html>\n", fix: "items:", obj: "Missing colon in for loop.", diff: "Easy" },
         // Master
-        { lang: "C++", bug: "#include <iostream>\n#include <vector>\n\ntemplate <T>\nvoid sync_array(T arr[], int size) {\n    for(int i=0; i < size; i++) {\n        std::cout << \"Syncing: \" << arr[i] << std::endl;\n    }\n}\n\nint main() {\n    int data[3] = {10, 20, 30};\n    sync_array(data, 3);\n    return 0;\n}", fix: "template <typename T>", obj: "Fix the template type parameter declaration.", diff: "Master" }
-    ];
+         {
+    lang: "Python",
+    bug: "def calculate_average(nums):\n    total = 0\n    for i in range(len(nums)):\n        total += nums[i]\n    return total / len(nums - 1)\n\nnumbers = [10, 20, 30, 40]\nprint(calculate_average(numbers))",
+    fix: "return total / len(nums)",
+    obj: "Fix the incorrect length calculation while computing the average.",
+    diff: "Hard"
+  },
+  {
+    lang: "C",
+    bug: "#include <stdio.h>\n\nint findMax(int arr[], int n) {\n    int max = arr[0];\n    for(int i = 1; i <= n; i++) {\n        if(arr[i] > max) {\n            max = arr[i];\n        }\n    }\n    return max;\n}\n\nint main() {\n    int a[5] = {3, 9, 2, 8, 5};\n    printf(\"%d\", findMax(a, 5));\n    return 0;\n}",
+    fix: "Change loop condition to i < n",
+    obj: "Fix array out-of-bounds access in the loop.",
+    diff: "Hard"
+  },
+  {
+    lang: "Java",
+    bug: "class Test {\n    static int factorial(int n) {\n        if(n == 0)\n            return 0;\n        return n * factorial(n - 1);\n    }\n\n    public static void main(String[] args) {\n        System.out.println(factorial(5));\n    }\n}",
+    fix: "return 1 when n == 0",
+    obj: "Fix the incorrect base condition in recursive factorial calculation.",
+    diff: "Hard"
+  },
+  {
+    lang: "JavaScript",
+    bug: "function removeDuplicates(arr) {\n    let result = [];\n    for(let i = 0; i < arr.length; i++) {\n        if(result.indexOf(arr[i]) > 0) {\n            result.push(arr[i]);\n        }\n    }\n    return result;\n}\n\nconsole.log(removeDuplicates([1, 2, 2, 3, 4, 4]));",
+    fix: "Change condition to indexOf(arr[i]) === -1",
+    obj: "Fix the duplicate checking logic in the array.",
+    diff: "Moderate"
+  },
+  {
+    lang: "HTML",
+    bug: "<!DOCTYPE html>\n<html>\n<head>\n  <title>Login</title>\n</head>\n<body>\n  <form>\n    <input type=\"text\" name=\"username\" required>\n    <input type=\"password\" name=\"password\" required>\n    <button type=\"submit\">Login</button>\n  </form>\n</body>\n</html>",
+    fix: "Add action and method attributes to the form tag",
+    obj: "Fix the missing form submission configuration.",
+    diff: "Moderate"
+  }
+]
 
     let state = { lvlIdx: 0, questIdx: 0, lvlScore: 0, totalScore: 0, questions: [] };
 
